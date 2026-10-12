@@ -638,3 +638,13 @@ input.paso-cant::-webkit-outer-spin-button, input.paso-cant::-webkit-inner-spin-
 .asesor__resultados h4.tarjeta__nombre { font-family: var(--fuente-titulo); color: var(--tinta-2); }
 .tarjeta__motivo { display: inline-block; margin: 0 0 6px; padding: 4px 10px; border: 1px solid var(--borde-control); border-radius: 999px; background: var(--paper-deep); color: var(--ink-night); font-size: 1rem; font-weight: 600; line-height: 1.3; }
 #asesor-error:not([hidden]) { border-color: var(--error); color: var(--error); font-weight: 600; }
+
+/* Foto de pieza completa (sin fondo o alargada): entera, sin recortar, como en el catálogo de Canva */
+.tarjeta__media img.foto--completa,
+.galeria__principal img.foto--completa,
+.miniatura img.foto--completa { object-fit: contain; padding: 6%; background: transparent; mix-blend-mode: multiply; }
+.miniatura img.foto--completa { padding: 4%; }
+.miniatura:has(img.foto--completa) { background: var(--paper-deep); }
+@media (prefers-reduced-motion: no-preference) {
+  .tarjeta:hover .tarjeta__media img.foto--completa { transform: scale(1.02); }
+}

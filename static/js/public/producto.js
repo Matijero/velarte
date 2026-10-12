@@ -8,6 +8,7 @@
     b.addEventListener('click', function () {
       img.src = b.getAttribute('data-foto-src');
       img.alt = b.getAttribute('data-foto-alt') || img.alt;
+      img.classList.toggle('foto--completa', b.getAttribute('data-foto-completa') === '1');
       Array.prototype.forEach.call(botones, function (o) {
         if (o === b) o.setAttribute('aria-current', 'true'); else o.removeAttribute('aria-current');
       });
