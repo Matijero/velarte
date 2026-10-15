@@ -360,8 +360,8 @@ input, textarea { caret-color: var(--ink-plum); }
 .chip { min-height: 44px; border-width: 1px; border-color: var(--campo); background: #fff; transition: background .2s ease, border-color .2s ease; }
 .chip:hover { border-color: var(--ink-plum); }
 .chip[aria-pressed='true'] { background: var(--ink-plum); border-color: var(--ink-plum); color: #fff; }
-.orden select { border-width: 1px; border-color: var(--campo); border-radius: 12px; background: #fff; }
-.panel-filtros { padding: 18px; border: 1px solid var(--line-soft); border-radius: 16px; background: #fff; }
+.orden select { border-width: 1px; border-color: var(--campo); border-radius: 12px; background: var(--paper); }
+.panel-filtros { padding: 18px; border: 1px solid var(--line-soft); border-radius: 16px; background: var(--paper); }
 .grilla { gap: 18px; }
 .tarjeta { border: 0; border-radius: 16px; background: #fff; box-shadow: var(--sombra); }
 .tarjeta:hover { box-shadow: 0 12px 28px rgba(90, 50, 64, .16); }
@@ -372,7 +372,7 @@ input, textarea { caret-color: var(--ink-plum); }
 .tarjeta__meta { color: var(--suave); font-size: 1rem; }
 .btn-mas { right: 10px; bottom: 10px; width: 46px; height: 46px; background: var(--ink-plum); box-shadow: 0 5px 14px rgba(90, 50, 64, .12); transition: transform .2s ease, background .2s ease; }
 .btn-mas:hover { background: var(--vino-osc); transform: scale(1.05); }
-.vacio { border-color: var(--line-soft); border-radius: 16px; background: #fff; }
+.vacio { border-color: var(--line-soft); border-radius: 16px; background: var(--paper); }
 .inspiracion { background: var(--paper-deep); }
 .inspiracion__galeria { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin: 28px 0; }
 .inspiracion__pieza { margin: 0; min-width: 0; }
@@ -413,7 +413,7 @@ input, textarea { caret-color: var(--ink-plum); }
 .opcion span { min-height: 66px; padding: 14px 17px; border: 1px solid var(--campo); border-radius: 14px; background: #fff; transition: border-color .2s ease, background .2s ease; }
 .opcion:hover span { border-color: var(--ink-plum); }
 .opcion input:checked + span { border-color: var(--ink-plum); background: var(--paper-deep); box-shadow: inset 0 0 0 1px var(--ink-plum); }
-.asesor__resultados { padding: 20px; border: 1px solid var(--line-soft); border-radius: 16px; background: #fff; }
+.asesor__resultados { padding: 20px; border: 1px solid var(--line-soft); border-radius: 16px; background: var(--paper); }
 @media (max-width: 639px) {
   .cabecera__fila { min-height: 64px; gap: 7px; }
   .marca { gap: 6px; }
@@ -648,3 +648,38 @@ input.paso-cant::-webkit-outer-spin-button, input.paso-cant::-webkit-inner-spin-
 @media (prefers-reduced-motion: no-preference) {
   .tarjeta:hover .tarjeta__media img.foto--completa { transform: scale(1.02); }
 }
+
+/* Envases y extras: selector como en las tiendas (cambia foto, precio y descripción) */
+.galeria__referencia { position: absolute; left: 10px; bottom: 10px; background: rgba(255, 249, 246, .92); color: var(--ink-night); border: 1px solid var(--line-soft); }
+.galeria__referencia[hidden] { display: none; }
+.opciones-producto { margin: 1rem 0 1.25rem; padding: 1rem 1.1rem; border: 1px solid var(--line-soft); border-radius: var(--radio); background: #fff; box-shadow: var(--sombra); }
+.opciones-producto__titulo { margin: 0 0 .5rem; font-size: 1.25rem; }
+.opciones-producto__grupo { border: 0; margin: 0 0 .75rem; padding: 0; min-width: 0; }
+.opciones-producto__grupo legend { font-weight: 700; margin-bottom: .4rem; padding: 0; }
+.opciones-producto__lista { display: grid; gap: .5rem; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); }
+.envase-opcion { position: relative; display: grid; gap: .1rem; min-height: 48px; padding: .6rem .8rem .6rem 2.4rem; border: 1px solid var(--line-soft); border-radius: 12px; background: var(--paper); cursor: pointer; }
+.envase-opcion input { position: absolute; left: .8rem; top: .85rem; width: 18px; height: 18px; margin: 0; accent-color: var(--ink-plum); }
+.envase-opcion__nombre { font-weight: 600; }
+.envase-opcion__precio { color: var(--gold-text); font-variant-numeric: tabular-nums; }
+.envase-opcion:hover { border-color: var(--ink-plum); }
+.envase-opcion:has(input:checked) { border-color: var(--ink-plum); background: var(--paper-deep); box-shadow: inset 0 0 0 1px var(--ink-plum); }
+.envase-opcion:has(input:focus-visible) { outline: 3px solid var(--ink-plum); outline-offset: 2px; }
+.campo-texto { margin: 0 0 .75rem; }
+.campo-texto[hidden] { display: none; }
+.campo-texto label { display: block; font-weight: 600; margin-bottom: .25rem; }
+.campo-texto input { width: 100%; min-height: 48px; padding: .5rem .8rem; font: inherit; border: 1px solid var(--ink-plum); border-radius: 12px; background: var(--paper); }
+.opciones-producto__descripcion { margin: 0 0 .5rem; color: var(--suave); }
+.opciones-producto__descripcion:empty { display: none; }
+.opciones-producto__total { margin: 0; font-size: 1.15rem; }
+.opciones-producto__total strong { color: var(--ink-plum); font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+.pedido-item__detalle { margin: .1rem 0 0; color: var(--suave); font-size: 1rem; }
+
+/* Tamaños de una vela: cada uno lleva a su página, con su precio */
+.tamanos { margin: .5rem 0 1rem; }
+.tamanos__titulo { margin: 0 0 .35rem; font-weight: 600; }
+.tamanos__lista { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem; }
+.tamano { display: inline-flex; flex-direction: column; min-width: 6.5rem; min-height: 44px; padding: .45rem .8rem; border: 1px solid var(--line-soft); border-radius: 12px; text-decoration: none; color: inherit; background: var(--paper); }
+.tamano:hover { border-color: var(--vino); }
+.tamano__nombre { font-weight: 600; }
+.tamano__precio { font-size: .875rem; opacity: .8; }
+.tamano--actual { border: 2px solid var(--vino); background: var(--paper-deep); }

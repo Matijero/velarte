@@ -110,6 +110,33 @@
     try { window.localStorage.setItem(CLAVE, JSON.stringify(items)); } catch (e) { /* modo privado: queda en memoria */ }
   }
 
+  /* Envases y extras: una línea del pedido = producto + envase elegido + extras + texto
+     personalizado. El precio se recalcula siempre con los precios públicos vigentes. */
+  function construir(p, opciones, texto) {
+    var env = p.envases || {};
+    opciones = (opciones || []).filter(function (o, n, a) { return a.indexOf(o) === n; });
+    var nombres = [], suma = 0, envase = 0;
+    for (var n = 0; n < opciones.length; n++) {
+      var o = env[opciones[n]];
+      if (!o) return null; /* ese envase ya no se ofrece */
+      if (o.t === 'envase') envase += 1;
+      nombres.push(o.n); suma += o.p;
+    }
+    if (envase > 1 || (p.solo === false && envase === 0)) return null;
+    texto = String(texto || '').trim().slice(0, 40);
+    var clave = p.id + (opciones.length ? '~' + opciones.slice().sort().join('+') : '') + (texto ? '~' + texto : '');
+    return Object.assign({}, p, {
+      clave: clave, opciones: opciones, texto: texto,
+      detalle: nombres.join(' + '),
+      precio: p.precio == null ? null : p.precio + suma
+    });
+  }
+  NS.construirLinea = function (id, opciones, texto) {
+    var p = referenciaPedido[id];
+    return p ? construir(p, opciones, texto) : null;
+  };
+  function claveDe(i) { return i.clave || i.id; }
+
   var avisoActualizacion = '';
   function revalidar(datos) {
     var salida = [], porId = {}, cambios = false;
@@ -119,10 +146,12 @@
       var cantidad = Number(i.cantidad);
       if (!Number.isFinite(cantidad) || cantidad < 1) { cambios = true; return; }
       cantidad = Math.min(MAX_CANT, Math.floor(cantidad));
-      if (cantidad !== i.cantidad || i.precio !== p.precio || i.nombre !== p.nombre || i.tipo !== p.tipo) cambios = true;
-      if (porId[p.id]) { porId[p.id].cantidad = Math.min(MAX_CANT, porId[p.id].cantidad + cantidad); cambios = true; return; }
-      var item = Object.assign({}, p, { cantidad: cantidad });
-      porId[p.id] = item; salida.push(item);
+      var linea = construir(p, i.opciones, i.texto);
+      if (!linea) { cambios = true; return; }
+      if (cantidad !== i.cantidad || i.precio !== linea.precio || i.nombre !== linea.nombre || i.tipo !== linea.tipo) cambios = true;
+      if (porId[linea.clave]) { porId[linea.clave].cantidad = Math.min(MAX_CANT, porId[linea.clave].cantidad + cantidad); cambios = true; return; }
+      var item = Object.assign(linea, { cantidad: cantidad });
+      porId[linea.clave] = item; salida.push(item);
     });
     if (cambios) avisoActualizacion = 'Actualizamos los precios de tu selección y retiramos las velas que ya no están disponibles. Revisa tu pedido antes de enviarlo.';
     return salida;
@@ -162,7 +191,8 @@
     var lineas = [];
     for (var n = 0; n < lista.length; n++) {
       var i = lista[n];
-      var linea = '- ' + i.cantidad + ' x ' + i.nombre + (i.codigo ? ' (' + i.codigo + ')' : '') + ' - ' + lineaPrecio(i);
+      var linea = '- ' + i.cantidad + ' x ' + i.nombre + (i.codigo ? ' (' + i.codigo + ')' : '') +
+        (i.detalle ? ' - ' + i.detalle : '') + (i.texto ? ' - texto: «' + i.texto + '»' : '') + ' - ' + lineaPrecio(i);
       lineas.push(linea);
     }
     return [cabecera].concat(lineas, pie).join('\n');
@@ -227,14 +257,17 @@
     if (!sinLista) {
     lista.textContent = '';
     items.forEach(function (i) {
+      var k = claveDe(i);
       var nombre = NS.el('a', { href: NS.base + (i.url || ''), class: 'pedido-item__nombre', text: i.nombre });
+      var textoDetalle = (i.detalle || '') + (i.texto ? (i.detalle ? ' · ' : '') + '«' + i.texto + '»' : '');
+      var detalle = textoDetalle ? NS.el('p', { class: 'pedido-item__detalle', text: textoDetalle }) : null;
       var precio = NS.el('p', { class: 'pedido-item__precio', text: lineaPrecio(i) });
-      var menos = NS.el('button', { type: 'button', class: 'paso-btn', 'data-accion': 'menos', 'data-id': i.id, 'aria-label': 'Quitar una unidad de ' + i.nombre, text: '−' });
-      var cant = NS.el('input', { type: 'number', class: 'paso-cant', inputmode: 'numeric', min: '1', max: String(MAX_CANT), step: '1', value: String(i.cantidad), 'aria-label': 'Cantidad de ' + i.nombre, 'data-accion': 'cantidad', 'data-id': i.id });
-      var mas = NS.el('button', { type: 'button', class: 'paso-btn', 'data-accion': 'mas', 'data-id': i.id, 'aria-label': 'Añadir una unidad de ' + i.nombre, text: '+' });
-      var quitar = NS.el('button', { type: 'button', class: 'btn-texto', 'data-accion': 'quitar', 'data-id': i.id, 'aria-label': 'Quitar ' + i.nombre + ' del pedido', text: 'Quitar' });
+      var menos = NS.el('button', { type: 'button', class: 'paso-btn', 'data-accion': 'menos', 'data-id': k, 'aria-label': 'Quitar una unidad de ' + i.nombre, text: '−' });
+      var cant = NS.el('input', { type: 'number', class: 'paso-cant', inputmode: 'numeric', min: '1', max: String(MAX_CANT), step: '1', value: String(i.cantidad), 'aria-label': 'Cantidad de ' + i.nombre, 'data-accion': 'cantidad', 'data-id': k });
+      var mas = NS.el('button', { type: 'button', class: 'paso-btn', 'data-accion': 'mas', 'data-id': k, 'aria-label': 'Añadir una unidad de ' + i.nombre, text: '+' });
+      var quitar = NS.el('button', { type: 'button', class: 'btn-texto', 'data-accion': 'quitar', 'data-id': k, 'aria-label': 'Quitar ' + i.nombre + ' del pedido', text: 'Quitar' });
       var li = NS.el('li', { class: 'pedido-item' }, [
-        NS.el('div', { class: 'pedido-item__info' }, [nombre, precio]),
+        NS.el('div', { class: 'pedido-item__info' }, [nombre, detalle, precio]),
         NS.el('div', { class: 'paso-grupo' }, [menos, cant, mas]),
         quitar
       ]);
@@ -253,21 +286,24 @@
     }
   }
 
-  function buscar(id) {
-    for (var n = 0; n < items.length; n++) if (items[n].id === id) return n;
+  function buscar(clave) {
+    for (var n = 0; n < items.length; n++) if (claveDe(items[n]) === clave) return n;
     return -1;
   }
 
   NS.pedido = {
     items: function () { return items.slice(); },
-    agregar: function (p, cantidad) {
-      if (!p || !referenciaPedido[p.id] || !referenciaPedido[p.id].disponible) return;
-      p = referenciaPedido[p.id];
+    agregar: function (p, cantidad, eleccion) {
+      if (!p || !referenciaPedido[p.id] || !referenciaPedido[p.id].disponible) return false;
+      eleccion = eleccion || {};
+      var linea = construir(referenciaPedido[p.id], eleccion.opciones, eleccion.texto);
+      if (!linea) return false;
       cantidad = Math.min(MAX_CANT, Math.max(1, Math.floor(Number(cantidad) || 1)));
-      var n = buscar(p.id);
+      var n = buscar(linea.clave);
       if (n >= 0) items[n].cantidad = Math.min(MAX_CANT, items[n].cantidad + cantidad);
-      else items.push(Object.assign({}, p, { cantidad: cantidad }));
+      else items.push(Object.assign(linea, { cantidad: cantidad }));
       guardar(items); pintar();
+      return true;
     },
     cambiar: function (id, delta) {
       var n = buscar(id);
@@ -283,7 +319,7 @@
       guardar(items); pintar({ accion: 'mas', id: '' });
       NS.toast('Quitaste ' + quitado.nombre, function () {
         /* F-05: si otra pestaña ya volvió a añadirlo mientras tanto, se respeta esa línea (sin duplicar). */
-        if (buscar(quitado.id) < 0) items.splice(Math.min(n, items.length), 0, quitado);
+        if (buscar(claveDe(quitado)) < 0) items.splice(Math.min(n, items.length), 0, quitado);
         guardar(items); pintar();
       });
     },
@@ -330,9 +366,9 @@
       NS.toast('Vaciaste tu pedido', function () {
         /* NUEVO-1: se recupera lo vaciado sin pisar lo que otra pestaña añadió o cambió entretanto. */
         var actuales = {};
-        items.forEach(function (i) { actuales[i.id] = i; });
-        var restaurado = previo.map(function (i) { var a = actuales[i.id]; delete actuales[i.id]; return a || i; });
-        items = restaurado.concat(items.filter(function (i) { return actuales[i.id]; }));
+        items.forEach(function (i) { actuales[claveDe(i)] = i; });
+        var restaurado = previo.map(function (i) { var a = actuales[claveDe(i)]; delete actuales[claveDe(i)]; return a || i; });
+        items = restaurado.concat(items.filter(function (i) { return actuales[claveDe(i)]; }));
         guardar(items); pintar();
       });
       return;
@@ -340,7 +376,15 @@
     var add = t.closest('[data-add]');
     if (add) {
       var p = NS.productos[add.getAttribute('data-add')];
-      if (p) { NS.pedido.agregar(p, 1); NS.toast('Añadido: ' + p.nombre); }
+      if (!p) return;
+      var eleccion = NS.leerEleccion ? NS.leerEleccion(p.id) : null;
+      if (eleccion && eleccion.error) { NS.toast(eleccion.error); if (eleccion.foco) eleccion.foco.focus(); return; }
+      if (NS.pedido.agregar(p, 1, eleccion || {})) {
+        NS.toast('Añadido: ' + p.nombre + (eleccion && eleccion.detalle ? ' (' + eleccion.detalle + ')' : ''));
+      } else if (p.url) {
+        /* Desde una tarjeta: esta pieza solo va en envase, así que se elige en su ficha */
+        window.location.href = NS.base + p.url;
+      }
       return;
     }
     var acc = t.closest('[data-accion]');

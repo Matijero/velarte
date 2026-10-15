@@ -61,7 +61,7 @@
 
   function coincide(p) {
     if (estado.q && !NS.coincideBusqueda(estado.q, p.texto)) return false;
-    if (estado.col && p.coleccion.slug !== estado.col) return false;
+    if (estado.col && (p.colecciones || [p.coleccion.slug]).indexOf(estado.col) < 0) return false;
     if (estado.oca.length && !p.ocasiones.some(function (o) { return estado.oca.indexOf(o.slug) >= 0; })) return false;
     if (estado.aro.length && !p.aromas.some(function (a) { return estado.aro.indexOf(a.slug) >= 0; })) return false;
     if (estado.pre && !coincideRango(precios[estado.pre], p.precio)) return false;
