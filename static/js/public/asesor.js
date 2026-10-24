@@ -103,8 +103,9 @@
   function tarjeta(p, cant, motivo) {
     var media = NS.el('div', { class: 'tarjeta__media' });
     if (p.foto) {
-      var src = /^(https?:)?\/\//.test(p.foto.url) ? p.foto.url : NS.base + p.foto.url;
-      media.appendChild(NS.el('img', { src: src, alt: p.foto.alt, width: '800', height: '800', loading: 'lazy', decoding: 'async' }));
+      var foto = p.foto.mini || p.foto.url;
+      var src = /^(https?:)?\/\//.test(foto) ? foto : NS.base + foto;
+      media.appendChild(NS.el('img', { src: src, alt: p.foto.alt, width: '600', height: '600', loading: 'lazy', decoding: 'async' }));
     } else {
       var tpl = document.getElementById('tpl-placeholder');
       if (tpl && tpl.content) {
